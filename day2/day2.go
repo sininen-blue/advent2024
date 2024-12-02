@@ -15,18 +15,28 @@ func main() {
 	count := 0
 	for _, row := range inputSlice {
 		rowSlice := strings.Split(row, " ")
-		safe, _ := checkSafety(rowSlice)
+		safe := checkSafety(rowSlice)
+
+		if safe == false {
+			for i := range len(rowSlice) {
+				removed := remove(rowSlice, i)
+				safe = checkSafety(removed)
+
+				if safe == true {
+					break
+				}
+			}
+		}
 
 		if safe {
 			count += 1
 		}
 	}
-	fmt.Println(count)
+	fmt.Println("Safe reports: ", count)
 }
 
-func checkSafety(rowSlice []string) (bool, []string) {
+func checkSafety(rowSlice []string) bool {
 	safe := true
-	dampenedSlice := []string{}
 	row := intSlice(rowSlice)
 
 	prevItem := row[0]
@@ -37,7 +47,6 @@ func checkSafety(rowSlice []string) (bool, []string) {
 		prevItem = item
 		prevState = state
 		if diff == 0 {
-			state = "flat"
 			safe = false
 			break
 		} else if diff < 0 {
@@ -58,7 +67,7 @@ func checkSafety(rowSlice []string) (bool, []string) {
 		}
 	}
 
-	return safe, dampenedSlice
+	return safe
 }
 
 func getInput(path string) []string {
@@ -77,8 +86,10 @@ func getInput(path string) []string {
 	return output
 }
 
-func remove(slice []string, s int) []string {
-	return append(slice[:s], slice[s+1:]...)
+func remove(s []string, i int) []string {
+	r := make([]string, 0)
+	r = append(r, s[:i]...)
+	return append(r, s[i+1:]...)
 }
 
 func intSlice(slice []string) []int {
