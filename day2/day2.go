@@ -30,6 +30,7 @@ func main() {
 		safe := true
 		prevLevel := -1
 		state := ""
+		problems := 0
 		for _, levelStr := range rowSlice {
 			level, err := strconv.Atoi(levelStr)
 			if err != nil {
@@ -57,12 +58,20 @@ func main() {
 			absDiff := math.Abs(float64(difference))
 			if absDiff > 3 || absDiff <= 0 {
 				// checks if levels reach thresholds
-				safe = false
-				break
+				problems += 1
+				continue
 			}
 
 			if curState != state && curState != "" {
 				// checks if it stops increasing or decreasing
+				problems += 1
+
+				// keep state the same if problem occurs
+				state = curState
+				continue
+			}
+
+			if problems > 1 {
 				safe = false
 				break
 			}
