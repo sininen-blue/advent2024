@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"math"
+	// "math"
 	"os"
 	"slices"
 	"strconv"
@@ -52,9 +52,23 @@ func main() {
 
 	var sum int
 	for i := range inputSlice {
-		difference := math.Abs(float64(leftList[i] - rightList[i]))
-		sum += int(difference)
+		// difference := math.Abs(float64(leftList[i] - rightList[i]))
+		// sum += int(difference)
+
+		sum += leftList[i] * count(leftList[i], rightList)
 	}
 
 	fmt.Println(sum)
+}
+
+func count(x int, y []int) int {
+	count := 0
+
+	for _, item := range y {
+		if x == item {
+			count += 1
+		}
+	}
+
+	return count
 }
