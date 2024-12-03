@@ -17,53 +17,33 @@ func main() {
 
 	commands := []Command{}
 	for _, line := range inputSlice {
-		// mul(,)
+		target := []rune{'m', 'u', 'l', '(', ',', ')'}
+
 		count := 0
+		inputX := ""
+		inputY := ""
+
 		for _, char := range line {
-			inputX := ""
-			inputY := ""
-			switch count {
-			case 0:
-				if string(char) == "m" {
-					count += 1
-				} else {
+			if count == 4 {
+				if _, err := strconv.Atoi(string(char)); err == nil {
+					inputX += string(char)
+					continue
+				} else if inputX == "" {
 					count = 0
+					continue
 				}
-			case 1:
-				if string(char) == "u" {
-					count += 1
-				} else {
+			}
+
+			if count == 5 {
+				if _, err := strconv.Atoi(string(char)); err == nil {
+					inputY += string(char)
+					continue
+				} else if inputY == "" {
 					count = 0
-				}
-			case 2:
-				if string(char) == "l" {
-					count += 1
-				} else {
-					count = 0
-				}
-			case 3:
-				if string(char) == "(" {
-					count += 1
-				} else {
-					count = 0
-				}
-			case 4:
-				if string(char) == "," && inputX != "" {
-					inputX = ""
-					count += 1
-				} else {
-					count = 0
+					continue
 				}
 
-				if _, err := strconv.Atoi(string(char)); err == nil {
-					inputX = inputX + string(char)
-					fmt.Println(inputX)
-				} else {
-					count = 0
-				}
-			case 5:
-				if string(char) == ")" && inputY != "" {
-					inputY = ""
+				if char == ')' {
 					x, err := strconv.Atoi(inputX)
 					y, err := strconv.Atoi(inputY)
 					if err != nil {
@@ -71,22 +51,35 @@ func main() {
 						return
 					}
 					command := Command{x: x, y: y}
+					fmt.Println(command)
 					commands = append(commands, command)
-
 					count = 0
+					inputX = ""
+					inputY = ""
 				} else {
+					inputX = ""
+					inputY = ""
 					count = 0
+					continue
 				}
+			}
 
-				if _, err := strconv.Atoi(string(char)); err == nil {
-					inputY = inputY + string(char)
-				} else {
-					count = 0
-				}
+			if char == target[count] {
+				// fmt.Println(string(char))
+				count += 1
+			} else {
+				inputX = ""
+				inputY = ""
+				count = 0
 			}
 		}
 	}
-	fmt.Println(commands)
+	sum := 0
+	for _, com := range commands {
+		sum += com.x * com.y
+	}
+
+	fmt.Println("total muls:", sum)
 }
 
 func getInput(path string) []string {
