@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 )
 
@@ -17,13 +18,46 @@ func main() {
 
 	commands := []Command{}
 	for _, line := range inputSlice {
-		target := []rune{'m', 'u', 'l', '(', ',', ')'}
+		lineComms := parseMuls([]rune(line))
+		commands = append(commands, lineComms...)
+	}
+	sum := 0
+	for _, com := range commands {
+		sum += com.x * com.y
+	}
 
-		count := 0
-		inputX := ""
-		inputY := ""
+	fmt.Println("total muls:", sum)
+}
 
-		for _, char := range line {
+func parseMuls(line []rune) []Command {
+	target := []rune{'m', 'u', 'l', '(', ',', ')'}
+	dont := []rune{'d', 'o', 'n', '\'', 't', '(', ')'}
+	do := []rune{'d', 'o', '(', ')'}
+	var commands []Command
+
+	active := true
+	count := 0
+	inputX := ""
+	inputY := ""
+	for i, char := range line {
+		if active == false {
+			if char == 'd' {
+				if reflect.DeepEqual(line[i:i+4], do) {
+					fmt.Println(i, string(line[i:i+4]))
+					active = true
+					continue
+				}
+			}
+		}
+		if active == true {
+			if char == 'd' {
+				if reflect.DeepEqual(line[i:i+7], dont) {
+					fmt.Println(i, string(line[i:i+7]))
+					active = false
+					continue
+				}
+			}
+
 			if count == 4 {
 				if _, err := strconv.Atoi(string(char)); err == nil {
 					inputX += string(char)
@@ -48,10 +82,10 @@ func main() {
 					y, err := strconv.Atoi(inputY)
 					if err != nil {
 						fmt.Println(err)
-						return
+						return nil
 					}
 					command := Command{x: x, y: y}
-					fmt.Println(command)
+					fmt.Println(active, command)
 					commands = append(commands, command)
 					count = 0
 					inputX = ""
@@ -74,12 +108,7 @@ func main() {
 			}
 		}
 	}
-	sum := 0
-	for _, com := range commands {
-		sum += com.x * com.y
-	}
-
-	fmt.Println("total muls:", sum)
+	return commands
 }
 
 func getInput(path string) []string {
