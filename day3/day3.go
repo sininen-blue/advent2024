@@ -2,10 +2,11 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
-	"reflect"
 	"strconv"
+	"strings"
 )
 
 type Command struct {
@@ -18,9 +19,30 @@ func main() {
 
 	commands := []Command{}
 	for _, line := range inputSlice {
-		lineComms := parseMuls([]rune(line))
-		commands = append(commands, lineComms...)
+		active := true
+		for i := 0; i < len(line); i++ {
+			if active {
+				if i+7 < len(line) && parseDont(line[i:i+7]) {
+					i = i + 7
+					active = false
+				}
+				if i+12 < len(line) {
+					command, err := parseMul(line[i : i+12])
+					if err != nil {
+						fmt.Println(err)
+						continue
+					}
+					commands = append(commands, command)
+				}
+			} else {
+				if i+4 < len(line) && parseDo(line[i:i+4]) {
+					i = i + 4
+					active = true
+				}
+			}
+		}
 	}
+
 	sum := 0
 	for _, com := range commands {
 		sum += com.x * com.y
@@ -29,86 +51,60 @@ func main() {
 	fmt.Println("total muls:", sum)
 }
 
-func parseMuls(line []rune) []Command {
-	target := []rune{'m', 'u', 'l', '(', ',', ')'}
-	dont := []rune{'d', 'o', 'n', '\'', 't', '(', ')'}
-	do := []rune{'d', 'o', '(', ')'}
-	var commands []Command
+func parseDont(line string) bool {
+	if line == "don't()" {
+		return true
+	}
+	return false
+}
 
-	active := true
-	count := 0
-	inputX := ""
-	inputY := ""
-	for i, char := range line {
-		if active == false {
-			if char == 'd' {
-				if reflect.DeepEqual(line[i:i+4], do) {
-					fmt.Println(i, string(line[i:i+4]))
-					active = true
-					continue
-				}
-			}
+func parseDo(line string) bool {
+	if line == "do()" {
+		return true
+	}
+	return false
+}
+
+func parseMul(line string) (Command, error) {
+	var command Command
+	var err error
+
+	if line[0:4] == "mul(" {
+		args := parseMulArgs(line[4:])
+
+		argSlice := strings.Split(args, ",")
+		if len(argSlice) < 2 {
+			return command, errors.New(fmt.Sprintln("Second argument invalid", line))
 		}
-		if active == true {
-			if char == 'd' {
-				if reflect.DeepEqual(line[i:i+7], dont) {
-					fmt.Println(i, string(line[i:i+7]))
-					active = false
-					continue
-				}
-			}
 
-			if count == 4 {
-				if _, err := strconv.Atoi(string(char)); err == nil {
-					inputX += string(char)
-					continue
-				} else if inputX == "" {
-					count = 0
-					continue
-				}
-			}
+		if string(line[4+len(args)]) != ")" {
+			return command, errors.New(fmt.Sprintln("Not closed properly", line))
+		}
 
-			if count == 5 {
-				if _, err := strconv.Atoi(string(char)); err == nil {
-					inputY += string(char)
-					continue
-				} else if inputY == "" {
-					count = 0
-					continue
-				}
+		x, err := strconv.Atoi(argSlice[0])
+		y, err := strconv.Atoi(argSlice[1])
+		if err != nil {
+			fmt.Println(err)
+		}
 
-				if char == ')' {
-					x, err := strconv.Atoi(inputX)
-					y, err := strconv.Atoi(inputY)
-					if err != nil {
-						fmt.Println(err)
-						return nil
-					}
-					command := Command{x: x, y: y}
-					fmt.Println(active, command)
-					commands = append(commands, command)
-					count = 0
-					inputX = ""
-					inputY = ""
-				} else {
-					inputX = ""
-					inputY = ""
-					count = 0
-					continue
-				}
-			}
+		command.x = x
+		command.y = y
+	}
 
-			if char == target[count] {
-				// fmt.Println(string(char))
-				count += 1
-			} else {
-				inputX = ""
-				inputY = ""
-				count = 0
-			}
+	return command, err
+}
+
+func parseMulArgs(line string) string {
+	var output string
+	for i := 0; i < len(line); i++ {
+		if _, err := strconv.Atoi(string(line[i])); err == nil {
+			output += string(line[i])
+		} else if string(line[i]) == "," {
+			output += string(line[i])
 		}
 	}
-	return commands
+
+	return output
 }
 
 func getInput(path string) []string {
