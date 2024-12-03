@@ -25,19 +25,27 @@ func main() {
 				if i+7 < len(line) && parseDont(line[i:i+7]) {
 					i = i + 7
 					active = false
+					fmt.Println("don't()")
+					continue
 				}
 				if i+12 < len(line) {
 					command, err := parseMul(line[i : i+12])
 					if err != nil {
+						if err.Error() == "Invalid" {
+							continue
+						}
 						fmt.Println(err)
 						continue
 					}
+					fmt.Println(command)
 					commands = append(commands, command)
 				}
 			} else {
 				if i+4 < len(line) && parseDo(line[i:i+4]) {
 					i = i + 4
 					active = true
+					fmt.Println("do()")
+					continue
 				}
 			}
 		}
@@ -89,9 +97,11 @@ func parseMul(line string) (Command, error) {
 
 		command.x = x
 		command.y = y
+		return command, err
+	} else {
+		err = errors.New("Invalid")
+		return command, err
 	}
-
-	return command, err
 }
 
 func parseMulArgs(line string) string {
